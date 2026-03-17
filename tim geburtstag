@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tim's 25. Birthday Tour</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --glass-bg-strong: rgba(255, 255, 255, 0.9);
+            --glass-border: rgba(255, 255, 255, 0.95);
+            --text-primary: #1a1a2e;
+            --text-secondary: #5c5c6d;
+            --olive: #7c8c6a;
+            --turquoise: #4a9b8e;
+            --wine: #8b3a3a;
+            --gradient-bg: linear-gradient(180deg, #e8ebe5 0%, #d4e5e2 50%, #e8d5d5 100%);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--gradient-bg);
+            background-attachment: fixed;
+            min-height: 100vh;
+            overflow-x: hidden;
+            color: var(--text-primary);
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 24px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Intro Screen */
+        .intro-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-bg);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            text-align: center;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+
+        .intro-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .intro-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            padding: 48px 36px;
+            box-shadow: 0 8px 32px rgba(124, 140, 106, 0.15), 
+                        0 2px 8px rgba(139, 58, 58, 0.08);
+            max-width: 360px;
+            width: 100%;
+        }
+
+        .intro-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--wine);
+            margin-bottom: 16px;
+        }
+
+        .intro-title {
+            font-size: 36px;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .intro-title span {
+            color: var(--turquoise);
+        }
+
+        .intro-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 32px;
+            font-weight: 400;
+        }
+
+        .start-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--olive), #6b7a5a);
+            border: none;
+            padding: 18px;
+            border-radius: 50px;
+            font-size: 17px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(124, 140, 106, 0.4);
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(124, 140, 106, 0.5);
+        }
+
+        .start-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Main App */
+        .main-app {
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+            padding-top: 20px;
+        }
+
+        .main-app.visible {
+            display: flex;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header */
+        .header-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(124, 140, 106, 0.12);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .tour-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--turquoise);
+        }
+
+        .stage-counter {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--wine);
+            background: rgba(139, 58, 58, 0.1);
+            padding: 6px 14px;
+            border-radius: 50px;
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-top: 4px;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50px;
+            height: 6px;
+            overflow: hidden;
+            margin-top: 16px;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--turquoise), var(--wine));
+            border-radius: 50px;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 10px rgba(74, 155, 142, 0.3);
+        }
+
+        /* Stage Card - Main */
+        .stage-card {
+            background: var(--glass-bg-strong);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            padding: 32px;
+            box-shadow: 0 8px 32px rgba(124, 140, 106, 0.12),
+                        0 2px 8px rgba(139, 58, 58, 0.06);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+        }
+
+        .stage-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--wine), #a04545);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            box-shadow: 0 4px 12px rgba(139, 58, 58, 0.3);
+        }
+
+        .stage-name {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 32px;
+            margin-top: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        /* QR Container */
+        .qr-wrapper {
+            background: white;
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06),
+                        0 0 0 1px rgba(0, 0, 0, 0.03);
+            margin-bottom: 32px;
+            position: relative;
+        }
+
+        .qr-label {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--turquoise), #5ab3a7);
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 6px 18px;
+            border-radius: 50px;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(74, 155, 142, 0.3);
+        }
+
+        #qrcode {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #qrcode img {
+            border-radius: 12px;
+            display: block;
+        }
+
+        .qr-hint {
+            margin-top: 16px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Navigation */
+        .nav-container {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 16px 20px;
+            border: none;
+            border-radius: 50px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .nav-btn-back {
+            background: rgba(255, 255, 255, 0.6);
+            color: var(--text-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .nav-btn-back:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.85);
+            color: var(--text-primary);
+        }
+
+        .nav-btn-next {
+            background: linear-gradient(135deg, var(--turquoise), #3d8b80);
+            color: white;
+            box-shadow: 0 4px 16px rgba(74, 155, 142, 0.35);
+        }
+
+        .nav-btn-next:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(74, 155, 142, 0.45);
+        }
+
+        .nav-btn-finish {
+            background: linear-gradient(135deg, var(--wine), #9e4545);
+            color: white;
+            box-shadow: 0 4px 16px rgba(139, 58, 58, 0.35);
+        }
+
+        .nav-btn-finish:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(139, 58, 58, 0.45);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        /* Completion */
+        .completion-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-bg);
+            z-index: 999;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .completion-screen.show {
+            display: flex;
+            animation: fadeIn 0.6s ease;
+        }
+
+        .completion-card {
+            background: var(--glass-bg-strong);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            padding: 48px 36px;
+            box-shadow: 0 8px 32px rgba(124, 140, 106, 0.15);
+            max-width: 360px;
+        }
+
+        .completion-emoji {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .completion-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--wine);
+            margin-bottom: 12px;
+        }
+
+        .completion-text {
+            font-size: 18px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 28px;
+        }
+
+        .restart-btn {
+            width: 100%;
+            background: var(--olive);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 50px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(124, 140, 106, 0.4);
+        }
+
+        /* Confetti */
+        .confetti {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            top: -10px;
+            animation: confetti-fall linear forwards;
+            z-index: 1001;
+        }
+
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 380px) {
+            .container {
+                padding: 16px;
+            }
+            
+            .stage-name {
+                font-size: 26px;
+            }
+            
+            .qr-wrapper {
+                padding: 20px;
+            }
+        }
+
+        @media (hover: none) {
+            .nav-btn:active {
+                transform: scale(0.98);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Intro -->
+    <div class="intro-screen" id="introScreen">
+        <div class="intro-card">
+            <div class="intro-label">25. Geburtstag</div>
+            <h1 class="intro-title">Happy Birthday,<br><span>Tim!</span></h1>
+            <p class="intro-subtitle">Eine besondere Überraschung erwartet dich. Etappe für Etappe entlang der Côte d'Azur.</p>
+            <button class="start-btn" onclick="startTour()">Überraschung starten</button>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div class="container">
+        <div class="main-app" id="mainApp">
+            
+            <!-- Header -->
+            <div class="header-card">
+                <div class="header-top">
+                    <span class="tour-label">Die große Tour</span>
+                    <span class="stage-counter" id="stageCounter">1 / 11</span>
+                </div>
+                <h2 class="header-title" id="headerTitle">Start</h2>
+                <div class="progress-container">
+                    <div class="progress-fill" id="progressFill" style="width: 9%"></div>
+                </div>
+            </div>
+
+            <!-- Stage Card -->
+            <div class="stage-card">
+                <div class="stage-badge" id="stageBadge">1</div>
+                <h1 class="stage-name" id="stageName">Start</h1>
+                
+                <div class="qr-wrapper">
+                    <div class="qr-label">Nächstes Ziel</div>
+                    <div id="qrcode"></div>
+                    <div class="qr-hint">Mit zweitem Handy scannen</div>
+                </div>
+
+                <div class="nav-container">
+                    <button class="nav-btn nav-btn-back" id="prevBtn" onclick="prevStage()" disabled>
+                        ← Zurück
+                    </button>
+                    <button class="nav-btn nav-btn-next" id="nextBtn" onclick="nextStage()">
+                        Weiter →
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Completion -->
+    <div class="completion-screen" id="completionScreen">
+        <div class="completion-card">
+            <div class="completion-emoji">❤️</div>
+            <h2 class="completion-title">Ich liebe dich :)</h2>
+            <p class="completion-text">Auf viele weitere Abenteuer zusammen.</p>
+            <button class="restart-btn" onclick="location.reload()">Nochmal starten</button>
+        </div>
+    </div>
+
+    <script>
+        const stages = [
+            { title: "Start", url: "https://maps.app.goo.gl/ranqsW1fnWD97kiUA" },
+            { title: "Frühstück", url: "https://maps.app.goo.gl/h16Fwcf9Nmkc6Lw46" },
+            { title: "Route des Crêtes", url: "https://maps.app.goo.gl/9vAfk77poPqbXC7Z9" },
+            { title: "Route des Crêtes", url: "https://maps.app.goo.gl/eYXQCXdVsUCWXeCQ9" },
+            { title: "Route des Crêtes", url: "https://maps.app.goo.gl/4VvwAbtWJij6Gair6" },
+            { title: "Parc du Mugel", url: "https://maps.app.goo.gl/Z8PCUV9qQ9e6w7S57" },
+            { title: "Café Acacia", url: "https://maps.app.goo.gl/71k66pqX9kNBuNrJA" },
+            { title: "Essen", url: "https://maps.app.goo.gl/JGDCcAD575LuBbdM9" },
+            { title: "Essen Alternative", url: "https://maps.app.goo.gl/PcttFXBk95FL7LtZ8" },
+            { title: "Notre Dame", url: "https://maps.app.goo.gl/zgGZEeYe6cUaGyn78" },
+            { title: "Ende", url: "https://maps.app.goo.gl/ranqsW1fnWD97kiUA" }
+        ];
+
+        let currentStage = 0;
+        let qrcode = null;
+
+        function startTour() {
+            document.getElementById('introScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.add('visible');
+            updateStage();
+        }
+
+        function updateStage() {
+            const stage = stages[currentStage];
+            
+            document.getElementById('stageCounter').textContent = `${currentStage + 1} / ${stages.length}`;
+            document.getElementById('headerTitle').textContent = stage.title;
+            document.getElementById('stageBadge').textContent = currentStage + 1;
+            document.getElementById('stageName').textContent = stage.title;
+            
+            const progress = ((currentStage + 1) / stages.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            
+            generateQR(stage.url);
+            
+            document.getElementById('prevBtn').disabled = currentStage === 0;
+            
+            const nextBtn = document.getElementById('nextBtn');
+            if (currentStage === stages.length - 1) {
+                nextBtn.textContent = 'Abschließen';
+                nextBtn.className = 'nav-btn nav-btn-finish';
+                nextBtn.onclick = completeTour;
+            } else {
+                nextBtn.textContent = 'Weiter →';
+                nextBtn.className = 'nav-btn nav-btn-next';
+                nextBtn.onclick = nextStage;
+            }
+        }
+
+        function generateQR(url) {
+            const container = document.getElementById('qrcode');
+            container.innerHTML = '';
+            
+            qrcode = new QRCode(container, {
+                text: url,
+                width: 200,
+                height: 200,
+                colorDark: "#8b3a3a",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+
+        function nextStage() {
+            if (currentStage < stages.length - 1) {
+                currentStage++;
+                updateStage();
+            }
+        }
+
+        function prevStage() {
+            if (currentStage > 0) {
+                currentStage--;
+                updateStage();
+            }
+        }
+
+        function completeTour() {
+            document.getElementById('completionScreen').classList.add('show');
+            createConfetti();
+        }
+
+        function createConfetti() {
+            const colors = ['#7c8c6a', '#4a9b8e', '#8b3a3a', '#9b8aa0', '#a04545'];
+            for (let i = 0; i < 40; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                    document.body.appendChild(confetti);
+                    setTimeout(() => confetti.remove(), 5000);
+                }, i * 60);
+            }
+        }
+
+        document.addEventListener('touchmove', function(e) {
+            if (e.scale !== 1) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(e) {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+    </script>
+</body>
+</html>
